@@ -30,8 +30,6 @@ namespace Testing
             {
                 token=client.Auth.Authorize(scopes:new List<OAuthScope>(){OAuthScope.DOCUMENT_FILE,OAuthScope.DOCUMENT_READ,OAuthScope.DOCUMENT_WRITE});
                 
-                
-                
             }
             catch (OAuthProviderException e)
             {

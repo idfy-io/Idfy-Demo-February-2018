@@ -19,8 +19,6 @@ namespace Idfy.Event.Demo
             Log.Logger = logger;
 
             var client = EventClient.Setup(Credentials.ClientId, Credentials.ClienttSecret)
-              //  .AddRebusCompatibeLogger(x =>x.ColoredConsole())
-               // .LogToConsole(LogLevel.Debug)
                 .SubscribeToAllEvents(allEvents)
                 .Subscribe<DocumentPackagedEvent>(documentPackageEvent)
                 .Subscribe<DocumentSignedEvent>(documentSignedEvent)

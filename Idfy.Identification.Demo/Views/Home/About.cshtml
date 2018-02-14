@@ -1,0 +1,13 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<p>Use this area to provide additional information.</p>
+
+
+<iframe src="@Html.Raw(ViewBag.Url)" scrolling="auto" style="height: 400px; width: 100%; border: 0px;" id="iframe" frameborder="0"></iframe>
+
+
+<p>SessionId: @ViewBag.SessionId</p>
