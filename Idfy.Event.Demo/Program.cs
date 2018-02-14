@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Idfy.Demo.Common;
 using Idfy.Events.Client;
@@ -9,13 +10,14 @@ namespace Idfy.Event.Demo
 {
     class Program
     {
+        private static HttpClient httpClient = new HttpClient();
         static void Main(string[] args)
         {
             var logger = new Serilog.LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.ColoredConsole()
                 .CreateLogger();
-
+            
             Log.Logger = logger;
 
             var client = EventClient.Setup(Credentials.ClientId, Credentials.ClienttSecret)
@@ -26,7 +28,9 @@ namespace Idfy.Event.Demo
                 .Start();
 
             Console.ReadKey();
+
             client.Dispose();
+            httpClient?.Dispose();
         }
 
         private static Task documentLinkEvent(DocumentLinkOpenedEvent arg)
@@ -44,10 +48,17 @@ namespace Idfy.Event.Demo
             return Task.FromResult(0);
         }
 
-        private static Task documentPackageEvent(DocumentPackagedEvent arg)
+        private static async Task documentPackageEvent(DocumentPackagedEvent arg)
         {
             Log.Logger.Information(Newtonsoft.Json.JsonConvert.SerializeObject(arg));
-            return Task.FromResult(0);
+            if (!string.IsNullOrWhiteSpace(arg.Payload.DownloadUrl))
+            {
+
+                string path = $@"c:\temp\{arg.Payload.DocumentId}.pdf";
+                System.IO.File.WriteAllBytes(path, await httpClient.GetByteArrayAsync(arg.Payload.DownloadUrl));
+                Log.Logger.Information("Saved document file: "+path);
+            }
+            
         }
 
         private static Task allEvents(Events.Entities.Event arg)

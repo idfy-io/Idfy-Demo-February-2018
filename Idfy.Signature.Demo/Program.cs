@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Remoting;
 using Idfy.RestClient;
 using Idfy.RestClient.Models;
 using Idfy.RestClient.Controllers;
 using Idfy.RestClient.Exceptions;
 using Idfy.Demo.Common;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Testing
@@ -48,9 +50,21 @@ namespace Testing
                 ExternalId = Guid.NewGuid().ToString(),
                 DataToSign = new DataToSign
                 {
-                    Base64Content = "VGhpcyB0ZXh0IGNhbiBzYWZlbHkgYmUgc2lnbmVk",
-                    FileName = "sample.txt",
-                    ConvertToPDF = false
+                    Base64Content = Convert.ToBase64String(File.ReadAllBytes("test.pdf")),
+                    FileName = "test.pdf",
+                    ConvertToPDF = false,
+                    Packaging = new Packaging()
+                    {
+                        PadesSettings = new PadesSettings()
+                        {
+                            PrimaryLanguage = PrimaryLanguage.NO,
+                            SecondaryLanguage = SecondaryLanguage.EN
+                        },
+                        SignaturePackageFormats = new List<SignaturePackageFormat>()
+                        {
+                            SignaturePackageFormat.PADES
+                        }
+                    }
                 },
                 ContactDetails = new ContactDetails
                 {
@@ -68,7 +82,8 @@ namespace Testing
                     {
                         Deadline = DateTime.Now.AddDays(1),
                         DeleteAfterHours = 1
-                    }
+                    },
+                    
                 }
             };
 
@@ -115,11 +130,10 @@ namespace Testing
                 {
                     UseCheckBox = false,
                     Title = "Info",
-                    Message =
-                        "Please read the contract on the next pages carefully. Pay some extra attention to paragraph 5."
+                    Message ="Please read the contract on the next pages carefully. Pay some extra attention to paragraph 5."
                 }
             };
-            signer.Ui.Language = Language.EN;
+            signer.Ui.Language = Language157.EN;
             signer.Ui.Styling = new SignatureStyling
             {
                 ColorTheme = ColorTheme.PINK,
@@ -134,13 +148,23 @@ namespace Testing
                 client.Auth.UpdateAccessToken(token);
                 var result = documents.DocumentsCreateAsync(request).Result;
 
-                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(result));
-                
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(result,Formatting.Indented));
+
+                Console.ReadLine();
+
+                var signedDocument = documents.DocumentsGetAsync(result.DocumentId.Value).Result;
+
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(signedDocument, Formatting.Indented));
+
             }
             catch (APIException e)
             {
                 Console.WriteLine(e);
             };
+
+            
+
+
 
             Console.ReadLine();
         }
